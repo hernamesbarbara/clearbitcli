@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""cli.py
+
+Usage:
+    cli.py EMAIL [--apikey APIKEY] [--reset] [--outfile OUTFILE]
+
+Arguments:
+    -o --outfile OUTFILE      Flatfile containing 1 email address per line
+    -a --apikey APIKEY        Your API key passed as string to stdin
+    
+Options:
+    -r --reset                Overwrite your old apikey
+
+"""
+
+import os
+import sys
+import json
+import time
+from docopt import docopt
+import clearbit
+import requests
+
+SECRETS_FILE = os.path.join(os.environ['HOME'], ".clearbit")
+
+def read_or_create_authfile(apikey=None, overwrite=False):
+    if (overwrite and apikey and os.path.exists(SECRETS_FILE)) or not os.path.exists(SECRETS_FILE):
+        with open(SECRETS_FILE, 'w') as f:
+            f.write(apikey)
+        return apikey
+    elif not apikey and not overwrite:
+        return open(SECRETS_FILE, 'r').read().strip()
+    else:
+        raise Exception("Something went wrong. Ensure `overwrite=True` to reset `{}`".format(SECRETS_FILE))
+
+def make_find_person_company_api(apikey):
+    clearbit.key = apikey
+    def find_person_company(email):
+        try:
+            return clearbit.PersonCompany.find(email=email)
+        except Exception, err:
+            print >> sys.stderr, "unable to process {}".format(email)
+            return {}
+    return find_person_company
+
+def _parse_args(args):
+    apikey = read_or_create_authfile(args['--apikey'], args['--reset'])
+    api_func = make_find_person_company_api(apikey)
+    if args.get('--outfile'):
+        outfile = open(args['--outfile'], 'w')
+    else:
+        outfile = sys.stdout
+    return api_func, args["EMAIL"], outfile
+
+def main(args):
+    find_person_company, email, outfile = _parse_args(args)
+    res = find_person_company(email=email)
+    return res, outfile
+
+if __name__ == "__main__":
+    args = docopt(__doc__)
+    res, outfile = main(args)
+    print >> outfile, json.dumps(res, indent=2)
