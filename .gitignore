@@ -95,3 +95,4 @@ vignettes/*.pdf
 sftp-config.json
 
 
+.DS_Store

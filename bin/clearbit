@@ -1,64 +1,62 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""cli.py
+"""clearbit
 
 Usage:
-    cli.py EMAIL [--apikey APIKEY] [--reset] [--outfile OUTFILE]
+    clearbit (-e EMAIL | -d DOMAIN)
 
 Arguments:
-    -o --outfile OUTFILE      Flatfile containing 1 email address per line
-    -a --apikey APIKEY        Your API key passed as string to stdin
+    -e EMAIL --email EMAIL           Email address to search for
+    -d DOMAIN --domain DOMAIN        DOMAIN address to search for
     
 Options:
-    -r --reset                Overwrite your old apikey
+    -h --help     Show this message
+
+Examples:
+    clearbit -e john.smith@gmail.com
+    clearbit -d omnicorp.com
 
 """
-
 import os
 import sys
 import json
-import time
 from docopt import docopt
 import clearbit
-import requests
+
 
 SECRETS_FILE = os.path.join(os.environ['HOME'], ".clearbit")
+clearbit.key = open(SECRETS_FILE, "r").read().strip()
 
-def read_or_create_authfile(apikey=None, overwrite=False):
-    if (overwrite and apikey and os.path.exists(SECRETS_FILE)) or not os.path.exists(SECRETS_FILE):
-        with open(SECRETS_FILE, 'w') as f:
-            f.write(apikey)
-        return apikey
-    elif not apikey and not overwrite:
-        return open(SECRETS_FILE, 'r').read().strip()
-    else:
-        raise Exception("Something went wrong. Ensure `overwrite=True` to reset `{}`".format(SECRETS_FILE))
+def find_by_email(email):
+    """try to enrich an email address using clearbit
+    """
+    return clearbit.Enrichment.find(email=email)
 
-def make_find_person_company_api(apikey):
-    clearbit.key = apikey
-    def find_person_company(email):
-        try:
-            return clearbit.PersonCompany.find(email=email)
-        except Exception, err:
-            print >> sys.stderr, "unable to process {}".format(email)
-            return {}
-    return find_person_company
-
-def _parse_args(args):
-    apikey = read_or_create_authfile(args['--apikey'], args['--reset'])
-    api_func = make_find_person_company_api(apikey)
-    if args.get('--outfile'):
-        outfile = open(args['--outfile'], 'w')
-    else:
-        outfile = sys.stdout
-    return api_func, args["EMAIL"], outfile
+def find_by_domain(domain):
+    """try to enrich a web domain (e.g. example.com) using clearbit
+    """
+    return clearbit.Enrichment.find(domain=domain)
 
 def main(args):
-    find_person_company, email, outfile = _parse_args(args)
-    res = find_person_company(email=email)
-    return res, outfile
+    if args['--domain'] is not None:
+        return find_by_domain(args['--domain'].lower())
+    else:
+        return find_by_email(args['--email'].lower())
 
 if __name__ == "__main__":
-    args = docopt(__doc__)
-    res, outfile = main(args)
-    print >> outfile, json.dumps(res, indent=2)
+    print("*"*80)
+    print(os.linesep)
+    try:
+        res = main(docopt(__doc__))
+        json.dump(res, sys.stdout, indent=2)
+        print(os.linesep)
+        print("*"*80)
+        print(os.linesep)
+        sys.exit(0)
+    except Exception, err:
+        sys.stderr.write(os.linesep+'Uh oh'+os.linesep)
+        sys.stderr.write(str(err))
+        print(os.linesep)
+        print("*"*80)
+        print(os.linesep)
+        sys.exit(1)
