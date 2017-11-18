@@ -23,23 +23,21 @@ def find_version(fname):
         raise RuntimeError('Cannot find version information')
     return version
 
-# __version__ = find_version("bin/clearbit")
+__version__ = find_version("bin/clearbit")
 
-print(find_version("bin/clearbit"))
+config = {
+    'description': 'use clearbit api from command line.',
+    'author': 'Austin Ogilvie',
+    'keywords': 'clearbit command line tool',
+    'author_email': 'a@yhathq.com',
+    'version': __version__,
+    'install_requires': ['nose', 'docopt', 'requests', 'clearbit'],
+    'packages': ['clearbitcli'],
+    'include_package_data': True,
+    'scripts': ['bin/clearbit'],
+    'zip_safe': False,
+    'name': 'clearbitcli',
+    'license': 'MIT'
+}
 
-# config = {
-#     'description': 'use clearbit api from command line.',
-#     'author': 'Austin Ogilvie',
-#     'keywords': 'clearbit command line tool',
-#     'author_email': 'a@yhathq.com',
-#     'version': '0.2',
-#     'install_requires': ['nose', 'docopt', 'requests', 'clearbit'],
-#     'packages': ['clearbitcli'],
-#     'include_package_data': True,
-#     'scripts': ['bin/clearbit'],
-#     'zip_safe': False,
-#     'name': 'clearbitcli',
-#     'license': 'MIT'
-# }
-
-# setup(**config)
+setup(**config)

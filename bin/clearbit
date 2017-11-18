@@ -51,23 +51,16 @@ def _parse_args():
 def main():
     args = _parse_args()
     if args['--domain'] is not None:
-        return find_by_domain(args['--domain'].lower())
+        res = find_by_domain(args['--domain'].lower())
     else:
-        return find_by_email(args['--email'].lower())
-
-if __name__ == "__main__":
+        res = find_by_email(args['--email'].lower())
     try:
-        res = main()
         json.dump(res, sys.stdout, indent=2)
         sys.exit(0)
     except Exception, err:
         sys.stderr.write(os.linesep+'Uh oh'+os.linesep)
         sys.stderr.write(str(err))
         sys.exit(1)
-
-
-def main():
-    print(_parse_args())
 
 if __name__ == '__main__':
     main()
