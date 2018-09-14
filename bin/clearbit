@@ -57,7 +57,7 @@ def main():
     try:
         json.dump(res, sys.stdout, indent=2)
         sys.exit(0)
-    except Exception, err:
+    except Exception as err:
         sys.stderr.write(os.linesep+'Uh oh'+os.linesep)
         sys.stderr.write(str(err))
         sys.exit(1)
