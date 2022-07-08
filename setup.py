@@ -27,9 +27,9 @@ __version__ = find_version("bin/clearbit")
 
 config = {
     'description': 'use clearbit api from command line.',
-    'author': 'Austin Ogilvie',
+    'author': 'austin',
     'keywords': 'clearbit command line tool',
-    'author_email': 'a@yhathq.com',
+    'author_email': 'tips@cia.lol',
     'version': __version__,
     'install_requires': ['nose', 'docopt', 'requests', 'clearbit'],
     'packages': ['clearbitcli'],
